@@ -4,18 +4,22 @@ npm run dev
 ```
 
 ```txt
-npm run deploy
+npm run build
+npm start
 ```
 
-[For generating/synchronizing types based on your Worker configuration run](https://developers.cloudflare.com/workers/wrangler/commands/#types):
+This backend was converted from a Cloudflare Worker to a Node + Express server.
 
-```txt
-npm run cf-typegen
+Run locally:
+
+```
+npm install
+npm run dev
 ```
 
-Pass the `CloudflareBindings` as generics when instantiation `Hono`:
+Build and start:
 
-```ts
-// src/index.ts
-const app = new Hono<{ Bindings: CloudflareBindings }>()
+```
+npm run build
+npm start
 ```
