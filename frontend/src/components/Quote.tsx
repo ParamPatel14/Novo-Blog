@@ -6,16 +6,16 @@ export const Quote = () => {
             <div className="flex justify-center">
                 <div className="max-w-lg">
                     <div className="text-3xl font-black leading-tight tracking-tight">
-                        "A simple interface changes everything."
+                        Read public blogs and write only when you are signed in.
                     </div>
                     <div className="mt-4 max-w-md text-base leading-7 text-slate-300">
-                        Clean surfaces, better hierarchy, and calmer reading make the experience feel premium without feeling heavy.
+                        Browse the feed, open any post, and use the profile menu to update your name when you want.
                     </div>
                     <div className="mt-8 max-w-md text-lg font-semibold text-left">
-                        Praman Patel
+                        Novo-Blog
                     </div>
                     <div className="max-w-md text-sm font-medium text-slate-400">
-                        CEO | Novo-Blog
+                        Public reading and private writing
                     </div>
                 </div>
             </div>

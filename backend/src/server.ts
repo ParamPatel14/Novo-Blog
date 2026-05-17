@@ -101,6 +101,72 @@ app.post('/api/v1/user/signin', async (req, res) => {
   }
 });
 
+app.get('/api/v1/user/me', authMiddleware, async (req, res) => {
+  try {
+    // @ts-ignore
+    const userId = req.userId as string;
+    const user = await User.findById(userId).select('name email').exec();
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.json({ user });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: 'Error fetching user' });
+  }
+});
+
+app.put('/api/v1/user/me', authMiddleware, async (req, res) => {
+  const body = req.body;
+  const nextName = String(body.name || '').trim();
+
+  if (!nextName) {
+    return res.status(400).json({ message: 'Name is required' });
+  }
+
+  try {
+    // @ts-ignore
+    const userId = req.userId as string;
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { name: nextName },
+      { new: true }
+    ).select('name email').exec();
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.json({ user });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: 'Error updating user' });
+  }
+});
+
+app.get('/api/v1/blog/bulk', async (_req, res) => {
+  try {
+    const blogs = await Post.find().select('title content author').populate({ path: 'author', select: 'name' }).exec();
+    return res.json({ blogs });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: 'Error fetching blogs' });
+  }
+});
+
+app.get('/api/v1/blog/:id', async (req, res) => {
+  const id = req.params.id;
+  try {
+    const blog = await Post.findById(id).populate({ path: 'author', select: 'name' }).exec();
+    return res.json({ blog });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: 'Error while fetching blog post' });
+  }
+});
+
 // Blog routes (protected)
 app.post('/api/v1/blog', authMiddleware, async (req, res) => {
   const body = req.body;
@@ -127,27 +193,6 @@ app.put('/api/v1/blog', authMiddleware, async (req, res) => {
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: 'Error updating blog' });
-  }
-});
-
-app.get('/api/v1/blog/bulk', authMiddleware, async (req, res) => {
-  try {
-    const blogs = await Post.find().select('title content author').populate({ path: 'author', select: 'name' }).exec();
-    return res.json({ blogs });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: 'Error fetching blogs' });
-  }
-});
-
-app.get('/api/v1/blog/:id', authMiddleware, async (req, res) => {
-  const id = req.params.id;
-  try {
-    const blog = await Post.findById(id).populate({ path: 'author', select: 'name' }).exec();
-    return res.json({ blog });
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: 'Error while fetching blog post' });
   }
 });
 

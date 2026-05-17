@@ -12,7 +12,7 @@ export const FullBlog = ({ blog }: {blog: Blog}) => {
                         {blog.title}
                     </div>
                     <div className="pt-4 text-sm font-semibold uppercase tracking-[0.25em] text-emerald-700">
-                        Published story
+                        Blog post
                     </div>
                     <div className="prose prose-slate max-w-none pt-8 text-lg leading-8 text-slate-700">
                         {blog.content}
@@ -30,7 +30,7 @@ export const FullBlog = ({ blog }: {blog: Blog}) => {
                                     {blog.author.name || "Anonymous"}
                                 </div>
                                 <div className="pt-2 text-sm leading-6 text-slate-500">
-                                    A clean reading layout with enough breathing room to let the article stand on its own.
+                                    Authored on Novo-Blog.
                                 </div>
                             </div>
                         </div>

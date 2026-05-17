@@ -3,16 +3,16 @@ import { Appbar } from '../components/Appbar';
 
 const highlights = [
   {
-    title: 'Read fast',
-    description: 'A clean reading layout that keeps the focus on the story, not the chrome.',
+    title: 'Public reading',
+    description: 'Anyone can open the feed and read articles without signing in.',
   },
   {
-    title: 'Write easily',
-    description: 'A lightweight editor flow for publishing posts without fighting the UI.',
+    title: 'Signed-in writing',
+    description: 'Only signed-in users can create posts and update their profile name.',
   },
   {
-    title: 'Stay organized',
-    description: 'A simple blog feed and article view that keeps navigation predictable.',
+    title: 'Simple account control',
+    description: 'Profile actions are kept inside the avatar menu for a cleaner header.',
   },
 ];
 
@@ -26,14 +26,14 @@ export const Landing = () => {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white/80 px-4 py-2 text-sm font-medium text-amber-900 shadow-sm backdrop-blur">
               <span className="h-2 w-2 rounded-full bg-amber-500" />
-              Minimal blog experience for readers and writers
+              Public reading, signed-in publishing
             </div>
             <h1 className="mt-6 text-5xl font-black tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
-              A calmer way to read,
-              <span className="block text-emerald-600">write, and publish.</span>
+              Read blogs publicly,
+              <span className="block text-emerald-600">publish only when signed in.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-slate-600 sm:text-xl">
-              Novo-Blog gives you a clean landing page, a focused reading flow, and a simple publishing workspace built for speed.
+              Novo-Blog keeps the feed open for everyone while protecting post creation and profile updates behind sign in.
             </p>
 
             <div className="mt-8 flex flex-col gap-4 sm:flex-row">
@@ -41,7 +41,7 @@ export const Landing = () => {
                 to="/signup"
                 className="inline-flex items-center justify-center rounded-full bg-slate-950 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800"
               >
-                Start writing
+                Sign up
               </Link>
               <Link
                 to="/blogs"
@@ -72,8 +72,8 @@ export const Landing = () => {
             <div className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-white/85 p-6 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur">
               <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                 <div>
-                  <div className="text-sm font-medium text-slate-500">Reading preview</div>
-                  <div className="text-lg font-bold text-slate-900">What great blogging feels like</div>
+                  <div className="text-sm font-medium text-slate-500">Feed preview</div>
+                  <div className="text-lg font-bold text-slate-900">Recent posts appear here</div>
                 </div>
                 <div className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">Live</div>
               </div>
@@ -99,9 +99,9 @@ export const Landing = () => {
 
         <section className="grid gap-5 lg:grid-cols-3">
           {[
-            ['Noisy UI removed', 'More breathing room, softer borders, and better spacing everywhere.'],
-            ['Better reading surfaces', 'Cards and article pages feel more editorial and less app-like.'],
-            ['Clear actions', 'Primary buttons stand out and navigation is easier to follow.'],
+            ['Open feed', 'Everyone can read blog posts without creating an account.'],
+            ['Protected writing', 'Creating and publishing posts requires sign in.'],
+            ['Profile menu', 'Signed-in users can change their displayed name from the avatar menu.'],
           ].map(([title, description]) => (
             <div key={title} className="rounded-3xl border border-white/60 bg-white/75 p-6 shadow-sm backdrop-blur">
               <div className="text-lg font-bold text-slate-950">{title}</div>

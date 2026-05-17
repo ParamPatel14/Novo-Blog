@@ -1,19 +1,30 @@
 import { Appbar } from "../components/Appbar"
 import axios from "axios";
 import { BACKEND_URL } from "../config";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
 
 export const Publish = () => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const navigate = useNavigate();
+    const isSignedIn = Boolean(localStorage.getItem("token"));
 
-    return <div className="min-h-screen bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_52%,#eef2ff_100%)]">
+    useEffect(() => {
+        if (!isSignedIn) {
+            navigate("/signin", { replace: true });
+        }
+    }, [isSignedIn, navigate]);
+
+    if (!isSignedIn) {
+        return <Navigate to="/signin" replace />;
+    }
+
+    return <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.10),_transparent_35%),linear-gradient(180deg,#ffffff_0%,#f8fafc_52%,#eef2ff_100%)]">
         <Appbar />
         <div className="mx-auto flex w-full justify-center px-6 py-10 lg:px-10"> 
-            <div className="w-full max-w-4xl rounded-[2rem] border border-white/70 bg-white/80 p-8 shadow-sm backdrop-blur">
+            <div className="w-full max-w-4xl rounded-[2rem] border border-white/70 bg-white/70 p-8 shadow-[0_20px_80px_rgba(15,23,42,0.12)] backdrop-blur-2xl">
                 <div className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-700">Create post</div>
                 <div className="mt-3 text-4xl font-black tracking-tight text-slate-950">Publish something useful</div>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">A calmer editor with more spacing, clearer focus states, and a cleaner writing surface.</p>
