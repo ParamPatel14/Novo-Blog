@@ -9,6 +9,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const net_1 = __importDefault(require("net"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const db_1 = require("./db");
 const User_1 = __importDefault(require("./models/User"));
 const Post_1 = __importDefault(require("./models/Post"));
@@ -137,7 +138,16 @@ app.put('/api/v1/user/me', authMiddleware, async (req, res) => {
 app.get('/api/v1/blog/bulk', async (_req, res) => {
     try {
         const blogs = await Post_1.default.find().select('title content author').populate({ path: 'author', select: 'name' }).exec();
-        return res.json({ blogs });
+        return res.json({
+            blogs: blogs.map((blog) => ({
+                id: blog._id.toString(),
+                title: blog.title,
+                content: blog.content,
+                author: {
+                    name: blog.author?.name || 'Anonymous',
+                },
+            })),
+        });
     }
     catch (e) {
         console.error(e);
@@ -146,9 +156,24 @@ app.get('/api/v1/blog/bulk', async (_req, res) => {
 });
 app.get('/api/v1/blog/:id', async (req, res) => {
     const id = req.params.id;
+    if (!mongoose_1.default.Types.ObjectId.isValid(id)) {
+        return res.status(400).json({ message: 'Invalid blog id' });
+    }
     try {
         const blog = await Post_1.default.findById(id).populate({ path: 'author', select: 'name' }).exec();
-        return res.json({ blog });
+        if (!blog) {
+            return res.status(404).json({ message: 'Blog not found' });
+        }
+        return res.json({
+            blog: {
+                id: blog._id.toString(),
+                title: blog.title,
+                content: blog.content,
+                author: {
+                    name: blog.author?.name || 'Anonymous',
+                },
+            },
+        });
     }
     catch (e) {
         console.error(e);
@@ -165,7 +190,7 @@ app.post('/api/v1/blog', authMiddleware, async (req, res) => {
     const authorId = req.userId;
     try {
         const blog = await Post_1.default.create({ title: body.title, content: body.content, author: authorId });
-        return res.json({ id: blog._id });
+        return res.json({ id: blog._id.toString() });
     }
     catch (e) {
         console.error(e);
@@ -179,7 +204,7 @@ app.put('/api/v1/blog', authMiddleware, async (req, res) => {
         return res.status(411).json({ message: 'Inputs not correct' });
     try {
         const blog = await Post_1.default.findByIdAndUpdate(body.id, { title: body.title, content: body.content }, { new: true }).exec();
-        return res.json({ id: blog?._id });
+        return res.json({ id: blog?._id?.toString() });
     }
     catch (e) {
         console.error(e);

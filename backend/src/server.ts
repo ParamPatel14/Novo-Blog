@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import net from 'net';
+import mongoose from 'mongoose';
 import { connectDB } from './db';
 import User from './models/User';
 import Post from './models/Post';
@@ -149,7 +150,16 @@ app.put('/api/v1/user/me', authMiddleware, async (req, res) => {
 app.get('/api/v1/blog/bulk', async (_req, res) => {
   try {
     const blogs = await Post.find().select('title content author').populate({ path: 'author', select: 'name' }).exec();
-    return res.json({ blogs });
+    return res.json({
+      blogs: blogs.map((blog) => ({
+        id: blog._id.toString(),
+        title: blog.title,
+        content: blog.content,
+        author: {
+          name: (blog.author as { name?: string } | null)?.name || 'Anonymous',
+        },
+      })),
+    });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: 'Error fetching blogs' });
@@ -158,9 +168,28 @@ app.get('/api/v1/blog/bulk', async (_req, res) => {
 
 app.get('/api/v1/blog/:id', async (req, res) => {
   const id = req.params.id;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid blog id' });
+  }
+
   try {
     const blog = await Post.findById(id).populate({ path: 'author', select: 'name' }).exec();
-    return res.json({ blog });
+
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog not found' });
+    }
+
+    return res.json({
+      blog: {
+        id: blog._id.toString(),
+        title: blog.title,
+        content: blog.content,
+        author: {
+          name: (blog.author as { name?: string } | null)?.name || 'Anonymous',
+        },
+      },
+    });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: 'Error while fetching blog post' });
@@ -176,7 +205,7 @@ app.post('/api/v1/blog', authMiddleware, async (req, res) => {
   const authorId = req.userId;
   try {
     const blog = await Post.create({ title: body.title, content: body.content, author: authorId });
-    return res.json({ id: blog._id });
+    return res.json({ id: blog._id.toString() });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: 'Error creating blog' });
@@ -189,7 +218,7 @@ app.put('/api/v1/blog', authMiddleware, async (req, res) => {
   if (!success) return res.status(411).json({ message: 'Inputs not correct' });
   try {
     const blog = await Post.findByIdAndUpdate(body.id, { title: body.title, content: body.content }, { new: true }).exec();
-    return res.json({ id: blog?._id });
+    return res.json({ id: blog?._id?.toString() });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: 'Error updating blog' });
