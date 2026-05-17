@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import net from 'net';
 import { connectDB } from './db';
 import User from './models/User';
 import Post from './models/Post';
@@ -14,15 +15,26 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = process.env.PORT || 4000;
+const preferredPort = Number(process.env.PORT || 4000);
 
-// Connect DB
-connectDB().then(() => {
-  console.log('Connected to MongoDB');
-}).catch(err => {
-  console.error('MongoDB connection error', err);
-  process.exit(1);
-});
+function isPortAvailable(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const tester = net.createServer()
+      .once('error', () => resolve(false))
+      .once('listening', () => tester.close(() => resolve(true)))
+      .listen(port, '0.0.0.0');
+  });
+}
+
+async function getAvailablePort(startPort: number) {
+  for (let port = startPort; port < startPort + 20; port += 1) {
+    if (await isPortAvailable(port)) {
+      return port;
+    }
+  }
+
+  throw new Error(`No free port found starting from ${startPort}`);
+}
 
 function generateToken(payload: object) {
   const secret = process.env.JWT_SECRET;
@@ -44,8 +56,13 @@ async function authMiddleware(req: express.Request, res: express.Response, next:
 
 app.post('/api/v1/user/signup', async (req, res) => {
   const body = req.body;
-  const { success } = signupInput.safeParse(body);
-  if (!success) return res.status(411).json({ message: 'Inputs not correct' });
+  const parsed = signupInput.safeParse(body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      message: 'Inputs not correct',
+      issues: parsed.error.issues,
+    });
+  }
 
   try {
     const hashed = await bcrypt.hash(body.password, 10);
@@ -54,14 +71,22 @@ app.post('/api/v1/user/signup', async (req, res) => {
     return res.json({ token });
   } catch (e) {
     console.error(e);
-    return res.status(411).json({ message: 'Invalid' });
+    if (e instanceof Error && e.message.includes('duplicate key')) {
+      return res.status(409).json({ message: 'Email already exists' });
+    }
+    return res.status(500).json({ message: 'Invalid' });
   }
 });
 
 app.post('/api/v1/user/signin', async (req, res) => {
   const body = req.body;
-  const { success } = signinInput.safeParse(body);
-  if (!success) return res.status(411).json({ message: 'Inputs not correct' });
+  const parsed = signinInput.safeParse(body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      message: 'Inputs not correct',
+      issues: parsed.error.issues,
+    });
+  }
 
   try {
     const user = await User.findOne({ email: body.email }).exec();
@@ -72,7 +97,7 @@ app.post('/api/v1/user/signin', async (req, res) => {
     return res.json({ token });
   } catch (e) {
     console.error(e);
-    return res.status(411).json({ message: 'Invalid' });
+    return res.status(500).json({ message: 'Invalid' });
   }
 });
 
@@ -126,6 +151,20 @@ app.get('/api/v1/blog/:id', authMiddleware, async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+async function startServer() {
+  try {
+    await connectDB();
+    console.log('Connected to MongoDB');
+
+    const port = await getAvailablePort(preferredPort);
+
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+  } catch (err) {
+    console.error('MongoDB connection error', err);
+    process.exit(1);
+  }
+}
+
+startServer();

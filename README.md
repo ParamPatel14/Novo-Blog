@@ -52,7 +52,9 @@ npm install
 npm run dev
 ```
 
-The frontend expects a backend URL configured in `frontend/src/config.ts` as `BACKEND_URL`. For local testing, set it to your local server (for example `http://localhost:4000`).
+The frontend expects a backend URL configured in `frontend/src/config.ts` as `BACKEND_URL`. For local testing, set `VITE_BACKEND_URL` or rely on the default `http://localhost:4000`.
+
+If port `4000` is already taken, the backend will automatically try the next free port and print it in the terminal.
 
 Authentication flow
 - `POST /api/v1/user/signup` — creates a user (hashed password) and returns a JSON `{ token }`.

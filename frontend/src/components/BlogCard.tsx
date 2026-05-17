@@ -15,24 +15,24 @@ export const BlogCard = ({
     publishedDate
 }: BlogCardProps) => {
     return <Link to={`/blog/${id}`}>
-        <div className="p-4 border-b border-slate-200 pb-4 w-screen max-w-screen-md cursor-pointer">
-            <div className="flex">
+        <div className="group w-screen max-w-screen-md cursor-pointer rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60">
+            <div className="flex items-center gap-3">
                 <Avatar name={authorName} />
-                <div className="font-extralight pl-2 text-sm flex justify-center flex-col">{authorName}</div>
-                <div className="flex justify-center flex-col pl-2">
+                <div className="font-semibold text-sm text-slate-700 flex justify-center flex-col">{authorName}</div>
+                <div className="flex justify-center flex-col">
                     <Circle />
                 </div>
-                <div className="pl-2 font-thin text-slate-500 text-sm flex justify-center flex-col">
+                <div className="font-medium text-slate-500 text-sm flex justify-center flex-col">
                     {publishedDate}
                 </div>
             </div>
-            <div className="text-xl font-semibold pt-2">
+            <div className="text-2xl font-bold pt-4 text-slate-950 group-hover:text-emerald-700 transition">
                 {title}
             </div>
-            <div className="text-md font-thin">
+            <div className="mt-3 text-base leading-7 text-slate-600">
                 {content.slice(0, 100) + "..."}
             </div>
-            <div className="text-slate-500 text-sm font-thin pt-4">
+            <div className="pt-5 text-sm font-medium text-slate-500">
                 {`${Math.ceil(content.length / 100)} minute(s) read`}
             </div>
         </div>
@@ -40,14 +40,14 @@ export const BlogCard = ({
 }
 
 export function Circle() {
-    return <div className="h-1 w-1 rounded-full bg-slate-500">
+    return <div className="mx-1 h-1 w-1 rounded-full bg-slate-300">
 
     </div>
 }
 
 export function Avatar({ name, size = "small" }: { name: string, size?: "small" | "big" }) {
-    return <div className={`relative inline-flex items-center justify-center overflow-hidden bg-gray-600 rounded-full ${size === "small" ? "w-6 h-6" : "w-10 h-10"}`}>
-    <span className={`${size === "small" ? "text-xs" : "text-md"} font-extralight text-gray-600 dark:text-gray-300`}>
+    return <div className={`relative inline-flex items-center justify-center overflow-hidden rounded-full bg-slate-900 ${size === "small" ? "w-7 h-7" : "w-11 h-11"}`}>
+    <span className={`${size === "small" ? "text-xs" : "text-sm"} font-bold text-white`}>
         {name[0]}
     </span>
 </div>
