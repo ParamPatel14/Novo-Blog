@@ -65,18 +65,18 @@ app.post('/api/v1/user/signup', async (req, res) => {
     });
   }
 
-  try {
-    const hashed = await bcrypt.hash(body.password, 10);
-    const user = await User.create({ email: body.email, password: hashed, name: body.name });
-    const token = generateToken({ id: user._id.toString() });
-    return res.json({ token });
-  } catch (e) {
-    console.error(e);
-    if (e instanceof Error && e.message.includes('duplicate key')) {
-      return res.status(409).json({ message: 'Email already exists' });
-    }
-    return res.status(500).json({ message: 'Invalid' });
+try {
+  const hashed = await bcrypt.hash(body.password, 10);
+  const user = await User.create({ email: body.email, password: hashed, name: body.name });
+  const token = generateToken({ id: user._id.toString() });
+  return res.json({ token });
+} catch (e) {
+  console.error(e);
+  if (e instanceof Error && e.message.includes('duplicate key')) {
+    return res.status(409).json({ message: 'Email already exists' });
   }
+  return res.status(500).json({ message: 'Invalid' });
+}
 });
 
 app.post('/api/v1/user/signin', async (req, res) => {
@@ -112,7 +112,7 @@ app.get('/api/v1/user/me', authMiddleware, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    return res.json({ user });
+    return res.json({ user: { id: user._id.toString(), name: user.name, email: user.email } });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: 'Error fetching user' });
@@ -156,6 +156,7 @@ app.get('/api/v1/blog/bulk', async (_req, res) => {
         title: blog.title,
         content: blog.content,
         author: {
+          id: (blog.author as any)?._id?.toString() || null,
           name: (blog.author as { name?: string } | null)?.name || 'Anonymous',
         },
       })),
@@ -186,6 +187,7 @@ app.get('/api/v1/blog/:id', async (req, res) => {
         title: blog.title,
         content: blog.content,
         author: {
+          id: (blog.author as any)?._id?.toString() || null,
           name: (blog.author as { name?: string } | null)?.name || 'Anonymous',
         },
       },
@@ -217,11 +219,43 @@ app.put('/api/v1/blog', authMiddleware, async (req, res) => {
   const { success } = updateBlogInput.safeParse(body);
   if (!success) return res.status(411).json({ message: 'Inputs not correct' });
   try {
-    const blog = await Post.findByIdAndUpdate(body.id, { title: body.title, content: body.content }, { new: true }).exec();
-    return res.json({ id: blog?._id?.toString() });
+    // Check ownership before updating
+    const blog = await Post.findById(body.id).exec();
+    if (!blog) return res.status(404).json({ message: 'Blog not found' });
+    // @ts-ignore
+    const userId = req.userId as string;
+    if (blog.author.toString() !== userId) {
+      return res.status(403).json({ message: 'Not authorized to edit this blog' });
+    }
+    blog.title = body.title;
+    blog.content = body.content;
+    await blog.save();
+    return res.json({ id: blog._id.toString() });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: 'Error updating blog' });
+  }
+});
+
+app.delete('/api/v1/blog/:id', authMiddleware, async (req, res) => {
+  const id = req.params.id;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: 'Invalid blog id' });
+  }
+
+  try {
+    const blog = await Post.findById(id).exec();
+    if (!blog) return res.status(404).json({ message: 'Blog not found' });
+    // @ts-ignore
+    const userId = req.userId as string;
+    if (blog.author.toString() !== userId) {
+      return res.status(403).json({ message: 'Not authorized to delete this blog' });
+    }
+    await Post.findByIdAndDelete(id).exec();
+    return res.json({ message: 'Deleted' });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: 'Error deleting blog' });
   }
 });
 

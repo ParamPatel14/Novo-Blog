@@ -4,12 +4,26 @@ import { BACKEND_URL } from "../config";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
+import { useLocation } from 'react-router-dom';
+import { useBlog } from '../hooks';
 
 export const Publish = () => {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const navigate = useNavigate();
     const isSignedIn = Boolean(localStorage.getItem("token"));
+    const location = useLocation();
+    const search = new URLSearchParams(location.search);
+    const editId = search.get('id');
+
+    const { blog, loading: blogLoading } = useBlog({ id: editId || '' });
+
+    useEffect(() => {
+        if (editId && blog) {
+            setTitle(blog.title || '');
+            setDescription(blog.content || '');
+        }
+    }, [editId, blog]);
 
     useEffect(() => {
         if (!isSignedIn) {
@@ -29,26 +43,48 @@ export const Publish = () => {
                 <div className="mt-3 text-4xl font-black tracking-tight text-slate-950">Publish something useful</div>
                 <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">A calmer editor with more spacing, clearer focus states, and a cleaner writing surface.</p>
 
-                <input onChange={(e) => {
+                <input value={title} onChange={(e) => {
                     setTitle(e.target.value)
                 }} type="text" className="mt-8 block w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" placeholder="Title" />
 
                 <TextEditor onChange={(e) => {
                     setDescription(e.target.value)
                 }} />
-                <button onClick={async () => {
-                    const response = await axios.post(`${BACKEND_URL}/api/v1/blog`, {
-                        title,
-                        content: description
-                    }, {
-                        headers: {
-                            Authorization: localStorage.getItem("token")
+                {editId ? (
+                    <button onClick={async () => {
+                        try {
+                            await axios.put(`${BACKEND_URL}/api/v1/blog`, {
+                                id: editId,
+                                title,
+                                content: description
+                            }, {
+                                headers: {
+                                    Authorization: localStorage.getItem("token") || ''
+                                }
+                            });
+                            navigate(`/blog/${editId}`)
+                        } catch (e) {
+                            alert('Failed to update post');
+                            console.error(e);
                         }
-                    });
-                    navigate(`/blog/${response.data.id}`)
-                }} type="submit" className="mt-6 inline-flex items-center rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">
-                    Publish post
-                </button>
+                    }} type="button" className="mt-6 inline-flex items-center rounded-full bg-amber-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-amber-500/15 transition hover:-translate-y-0.5 hover:bg-amber-700 focus:outline-none focus:ring-4 focus:ring-amber-100">
+                        Update post
+                    </button>
+                ) : (
+                    <button onClick={async () => {
+                        const response = await axios.post(`${BACKEND_URL}/api/v1/blog`, {
+                            title,
+                            content: description
+                        }, {
+                            headers: {
+                                Authorization: localStorage.getItem("token") || ''
+                            }
+                        });
+                        navigate(`/blog/${response.data.id}`)
+                    }} type="submit" className="mt-6 inline-flex items-center rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200">
+                        Publish post
+                    </button>
+                )}
             </div>
         </div>
     </div>

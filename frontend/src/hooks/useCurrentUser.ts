@@ -3,6 +3,7 @@ import axios from 'axios';
 import { BACKEND_URL } from '../config';
 
 export interface CurrentUser {
+  id?: string;
   email: string;
   name?: string;
 }

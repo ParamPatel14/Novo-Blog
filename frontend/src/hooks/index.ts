@@ -8,6 +8,7 @@ export interface Blog {
     title: string;
     id: string;
     "author": {
+        "id"?: string
         "name": string
     }
 }
@@ -17,6 +18,12 @@ export const useBlog = ({ id }: { id: string }) => {
     const [blog, setBlog] = useState<Blog>();
 
     useEffect(() => {
+        if (!id) {
+            setLoading(false);
+            setBlog(undefined);
+            return;
+        }
+
         axios.get(`${BACKEND_URL}/api/v1/blog/${id}`)
             .then(response => {
                 setBlog(response.data.blog);
